@@ -1,23 +1,23 @@
-# Mockamap - ROS2 随机地图生成器
+# Mockamap - ROS2 Random Map Generator
 
 [![ROS2](https://img.shields.io/badge/ROS2-Humble%2FIron%2FRolling-blue.svg)](https://docs.ros.org/en/humble/)
 [![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-这是一个用于 ROS2 的随机地图生成器包，可以从 ROS1 迁移而来。它可以生成多种类型的 3D 点云地图，用于机器人导航和路径规划算法的测试。
+A random map generator package for ROS2, migrated from ROS1. It can generate various types of 3D point cloud maps for testing robot navigation and path planning algorithms.
 
-## 特性
+## Features
 
-- **4 种地图生成模式**：
-  1. **Perlin 噪声 3D** - 使用 Perlin 噪声算法生成自然地形
-  2. **随机障碍物** - 随机生成长方体障碍物
-  3. **2D 迷宫** - 递归分割算法生成 2D 迷宫
-  4. **3D 迷宫** - 基于 Voronoi 图的 3D 迷宫
+- **4 Map Generation Modes**:
+  1. **Perlin Noise 3D** - Generate natural terrain using Perlin noise algorithm
+  2. **Random Obstacles** - Randomly generate cuboid obstacles
+  3. **2D Maze** - Generate 2D mazes using recursive division algorithm
+  4. **3D Maze** - Generate 3D mazes based on Voronoi diagrams
 
-- **完全兼容 ROS2**：使用 rclcpp 和 ROS2 消息类型
-- **可配置参数**：通过 launch 文件或参数服务器自定义地图属性
-- **实时发布**：地图以 `sensor_msgs/PointCloud2` 消息格式持续发布
+- **Fully ROS2 Compatible**: Uses rclcpp and ROS2 message types
+- **Configurable Parameters**: Customize map properties via launch files or parameter server
+- **Real-time Publishing**: Maps are continuously published as `sensor_msgs/PointCloud2` messages
 
-## 依赖
+## Dependencies
 
 - ROS2 (Humble/Iron/Rolling)
 - rclcpp
@@ -25,80 +25,80 @@
 - PCL (Point Cloud Library)
 - Eigen3
 
-## 安装
+## Installation
 
 ```bash
 cd ~/ros2_ws/src
-git clone <repository_url>
+git clone https://github.com/Atticlmr/mockamap
 cd ~/ros2_ws
 colcon build --packages-select mockamap
 source install/setup.bash
 ```
 
-## 使用方法
+## Usage
 
-### 启动默认地图
+### Launch Default Map
 
 ```bash
 ros2 launch mockamap mockamap.launch.py
 ```
 
-### 在 RViz2 中查看
+### View in RViz2
 
 ```bash
 ros2 run rviz2 rviz2
 ```
 
-添加 `PointCloud2` 显示，设置话题为 `/mock_map`。
+Add a `PointCloud2` display and set the topic to `/mock_map`.
 
-## 参数说明
+## Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `seed` | int | 511 | 随机种子，用于复现相同地图 |
-| `update_freq` | double | 1.0 | 地图发布频率 (Hz) |
-| `resolution` | double | 0.1 | 地图分辨率 (米/体素) |
-| `x_length` | int | 10 | X 轴长度 (米) |
-| `y_length` | int | 10 | Y 轴长度 (米) |
-| `z_length` | int | 3 | Z 轴高度 (米) |
-| `type` | int | 1 | 地图类型 (1-4) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `seed` | int | 511 | Random seed for reproducing the same map |
+| `update_freq` | double | 1.0 | Map publishing frequency (Hz) |
+| `resolution` | double | 0.1 | Map resolution (meters/voxel) |
+| `x_length` | int | 10 | X-axis length (meters) |
+| `y_length` | int | 10 | Y-axis length (meters) |
+| `z_length` | int | 3 | Z-axis height (meters) |
+| `type` | int | 1 | Map type (1-4) |
 
-### 类型 1: Perlin 噪声 3D 参数
+### Type 1: Perlin Noise 3D Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `complexity` | double | 0.03 | 噪声频率，越大越复杂 (0.0~0.5) |
-| `fill` | double | 0.3 | 填充比例 (0.0~1.0) |
-| `fractal` | int | 1 | 分层层数，越多细节越丰富 |
-| `attenuation` | double | 0.1 | 分形衰减系数 (0.0~0.5) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `complexity` | double | 0.03 | Noise frequency, higher = more complex (0.0~0.5) |
+| `fill` | double | 0.3 | Fill ratio (0.0~1.0) |
+| `fractal` | int | 1 | Number of fractal layers, more = more detail |
+| `attenuation` | double | 0.1 | Fractal attenuation coefficient (0.0~0.5) |
 
-### 类型 2: 随机障碍物参数
+### Type 2: Random Obstacles Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `width_min` | double | 0.6 | 障碍物最小宽度 (米) |
-| `width_max` | double | 1.5 | 障碍物最大宽度 (米) |
-| `obstacle_number` | int | 50 | 障碍物数量 |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `width_min` | double | 0.6 | Minimum obstacle width (meters) |
+| `width_max` | double | 1.5 | Maximum obstacle width (meters) |
+| `obstacle_number` | int | 50 | Number of obstacles |
 
-### 类型 3: 2D 迷宫参数
+### Type 3: 2D Maze Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `road_width` | double | 0.5 | 道路宽度 (米) |
-| `add_wall_x` | int | 0 | 是否添加 X 方向边界墙 (0/1) |
-| `add_wall_y` | int | 1 | 是否添加 Y 方向边界墙 (0/1) |
-| `maze_type` | int | 1 | 迷宫类型 (1=递归分割) |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `road_width` | double | 0.5 | Road width (meters) |
+| `add_wall_x` | int | 0 | Whether to add X-direction boundary walls (0/1) |
+| `add_wall_y` | int | 1 | Whether to add Y-direction boundary walls (0/1) |
+| `maze_type` | int | 1 | Maze type (1=recursive division) |
 
-### 类型 4: 3D 迷宫参数
+### Type 4: 3D Maze Parameters
 
-| 参数名 | 类型 | 默认值 | 说明 |
-|--------|------|--------|------|
-| `numNodes` | int | 40 | 节点数量 |
-| `connectivity` | double | 0.8 | 连通性系数 (0.0~1.0) |
-| `nodeRad` | int | 1 | 节点半径 |
-| `roadRad` | int | 10 | 道路半径 |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `numNodes` | int | 40 | Number of nodes |
+| `connectivity` | double | 0.8 | Connectivity coefficient (0.0~1.0) |
+| `nodeRad` | int | 1 | Node radius |
+| `roadRad` | int | 10 | Road radius |
 
-## 自定义 Launch 示例
+## Custom Launch Example
 
 ```python
 # my_map.launch.py
@@ -114,7 +114,7 @@ def generate_launch_description():
             output='screen',
             parameters=[{
                 'seed': 1234,
-                'type': 2,  # 随机障碍物
+                'type': 2,  # Random obstacles
                 'resolution': 0.2,
                 'x_length': 50,
                 'y_length': 50,
@@ -127,80 +127,84 @@ def generate_launch_description():
     ])
 ```
 
-运行自定义 launch：
+Run custom launch:
 ```bash
 ros2 launch mockamap my_map.launch.py
 ```
 
-## 地图类型示例
+## Map Type Examples
 
-### Type 1: Perlin 噪声 3D
-适合模拟自然地形，如山丘、洞穴等。
+### Type 1: Perlin Noise 3D
+Suitable for simulating natural terrain such as hills and caves.
 
 ![Perlin 3D](images/perlin3d.png)
 
-### Type 2: 随机障碍物
-适合测试避障算法，障碍物随机分布在空间中。
+### Type 2: Random Obstacles
+Suitable for testing obstacle avoidance algorithms with randomly distributed obstacles.
 
-### Type 3: 2D 迷宫
-使用递归分割算法生成经典迷宫结构，可配置道路宽度和边界墙。
+### Type 3: 2D Maze
+Generates classic maze structures using recursive division algorithm, with configurable road width and boundary walls.
 
 ![2D Maze](images/post2d.png)
 
-### Type 4: 3D 迷宫
-基于 Voronoi 图生成的三维迷宫结构，适合测试无人机路径规划。
+### Type 4: 3D Maze
+Generates 3D maze structures based on Voronoi diagrams, suitable for testing UAV path planning.
 
-## 节点信息
+## Node Information
 
-### 发布的话题
+### Published Topics
 
-- `/mock_map` (`sensor_msgs/msg/PointCloud2`): 生成的地图点云
+- `/mock_map` (`sensor_msgs/msg/PointCloud2`): Generated map point cloud
 
-### 参数
+### Parameters
 
-所有参数均在节点启动时通过参数服务器配置，支持动态重配置。
+All parameters are configured via the parameter server at node startup, supporting dynamic reconfiguration.
 
-## 与其他 ROS2 包集成
+## Integration with Other ROS2 Packages
 
-### 与 OctoMap 集成
+### Integration with OctoMap
 
 ```bash
 ros2 run octomap_server octomap_server_node
-# 将 mock_map 话题重映射为 octomap 输入
+# Remap mock_map topic as octomap input
 ```
 
-### 与 Navigation2 集成
+### Integration with Navigation2
 
-在 Nav2 配置中设置 `voxel_layer` 或 `obstacle_layer` 订阅 `/mock_map` 话题。
+Configure `voxel_layer` or `obstacle_layer` in Nav2 to subscribe to the `/mock_map` topic.
 
-## 常见问题
+## FAQ
 
-### Q: 编译时找不到 PCL？
-确保已安装 PCL 开发库：
+### Q: PCL not found during compilation?
+Ensure PCL development libraries are installed:
 ```bash
 sudo apt install libpcl-dev
 ```
 
-### Q: 地图没有显示？
-检查 RViz2 中：
-1. Fixed Frame 设置为 `map`
-2. PointCloud2 话题设置为 `/mock_map`
-3. 调整 Decay Time 或增大 Point Size
+### Q: Map not displaying?
+Check in RViz2:
+1. Fixed Frame is set to `map`
+2. PointCloud2 topic is set to `/mock_map`
+3. Adjust Decay Time or increase Point Size
 
-### Q: 如何保存生成的地图？
-可以使用 pcl_ros 的 pointcloud_to_pcd 节点保存：
+### Q: How to save the generated map?
+You can use pcl_ros's pointcloud_to_pcd node:
 ```bash
 ros2 run pcl_ros pointcloud_to_pcd --ros-args --remap input:=/mock_map
 ```
 
-## 许可证
+## License
 
-GPLv3 - 详见 [LICENSE](LICENSE) 文件
+GPLv3 - See [LICENSE](LICENSE) file for details
 
-## 作者
+## Author
 
-William Wu
+GitHub@Atticlmr
 
-## 致谢
+## Acknowledgments
 
-基于原始 ROS1 版本的 mockamap 包迁移而来。
+Based on the original ROS1 version of the mockamap package.
+
+---
+
+[中文文档](README-CN.md)
