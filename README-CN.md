@@ -40,7 +40,7 @@ source install/setup.bash
 ### 启动默认地图
 
 ```bash
-ros2 launch mockamap mockamap.launch.py
+ros2 launch mockamap mockamap.py
 ```
 
 ### 在 RViz2 中查看
@@ -129,7 +129,7 @@ def generate_launch_description():
 
 运行自定义 launch：
 ```bash
-ros2 launch mockamap my_map.launch.py
+ros2 launch mockamap my_map.py
 ```
 
 ## 地图类型示例

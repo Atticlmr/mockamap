@@ -13,8 +13,8 @@ def generate_launch_description():
                         # box edge length, unit meter
                         {'resolution': 0.25},
                         # map size unit meter
-                        {'x_length': 10},
-                        {'y_length': 10},
+                        {'x_length': 30},
+                        {'y_length': 30},
                         {'z_length': 3},
                         # 1 perlin noise 3D, 2 perlin box random map, 3 2d maze still developing
                         {'type': 1},
@@ -23,8 +23,8 @@ def generate_launch_description():
                         # fill:        infill persentage. typical: 0.4 ~ 0.0
                         # fractal:     large value will have more detail
                         # attenuation: for fractal attenuation. typical: 0.0 ~ 0.5
-                        {'complexity': 0.03},
-                        {'fill': 0.1},
+                        {'complexity': 0.05},
+                        {'fill': 0.25},
                         {'fractal': 1},
                         {'attenuation': 0.1},
                         {'width_min': 0.6},

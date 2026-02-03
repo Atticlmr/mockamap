@@ -40,7 +40,7 @@ source install/setup.bash
 ### Launch Default Map
 
 ```bash
-ros2 launch mockamap mockamap.launch.py
+ros2 launch mockamap mockamap.py
 ```
 
 ### View in RViz2
