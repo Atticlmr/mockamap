@@ -153,6 +153,23 @@ main(int argc, char** argv)
   node->declare_parameter<int>("nodeRad", 3);
   node->declare_parameter<int>("roadRad", 2);
 
+  // Random cylinders + rings parameters (type=5, AutoTrans-style)
+  node->declare_parameter<int>("cylinder_number", 70);
+  node->declare_parameter<double>("cylinder_radius_min", 0.5);
+  node->declare_parameter<double>("cylinder_radius_max", 0.7);
+  node->declare_parameter<double>("cylinder_height_min", 2.0);
+  node->declare_parameter<double>("cylinder_height_max", 3.0);
+  node->declare_parameter<double>("min_distance", 1.4);
+  node->declare_parameter<int>("ring_number", 10);
+  node->declare_parameter<double>("ring_radius_min", 0.7);
+  node->declare_parameter<double>("ring_radius_max", 1.2);
+  node->declare_parameter<double>("ring_z_min", 0.7);
+  node->declare_parameter<double>("ring_z_max", 0.8);
+  node->declare_parameter<double>("ring_max_yaw", 0.5);
+  node->declare_parameter<int>("numGates", 10);
+  node->declare_parameter<double>("gateSize", 2.0);
+  node->declare_parameter<double>("maxAngle", 10.0);
+
   node->get_parameter("seed", seed);
   node->get_parameter("update_freq", update_freq);
   node->get_parameter("resolution", scale);

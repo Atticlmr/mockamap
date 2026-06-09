@@ -40,6 +40,7 @@ private:
   void perlin3D();
   void maze2D();
   void randomMapGenerate();
+  void randomCylinderRingMapGenerate();
   void Maze3DGen();
   void recursiveDivision(int xl, int xh, int yl, int yh, Eigen::MatrixXi &maze);
   void recursizeDivisionMaze(Eigen::MatrixXi &maze);

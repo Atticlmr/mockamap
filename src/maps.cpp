@@ -1,6 +1,7 @@
 #include "maps.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <random>
@@ -87,6 +88,187 @@ Maps::randomMapGenerate()
   info.cloud->height   = 1;
   info.cloud->is_dense = true;
 
+  pcl2ros();
+}
+
+void
+Maps::randomCylinderRingMapGenerate()
+{
+  std::default_random_engine eng(info.seed);
+
+  const double resolution = 1.0 / info.scale;
+  const double x_l = -info.sizeX / (2.0 * info.scale);
+  const double x_h = info.sizeX / (2.0 * info.scale);
+  const double y_l = -info.sizeY / (2.0 * info.scale);
+  const double y_h = info.sizeY / (2.0 * info.scale);
+
+  int cylinder_num;
+  int ring_num;
+  double radius_min;
+  double radius_max;
+  double height_min;
+  double height_max;
+  double min_distance;
+  double ring_radius_min;
+  double ring_radius_max;
+  double ring_z_min;
+  double ring_z_max;
+  double ring_max_yaw;
+
+  info.node->get_parameter_or("cylinder_number", cylinder_num, 70);
+  info.node->get_parameter_or("cylinder_radius_min", radius_min, 0.5);
+  info.node->get_parameter_or("cylinder_radius_max", radius_max, 0.7);
+  info.node->get_parameter_or("cylinder_height_min", height_min, 2.0);
+  info.node->get_parameter_or("cylinder_height_max", height_max, 3.0);
+  info.node->get_parameter_or("min_distance", min_distance, 1.4);
+  info.node->get_parameter_or("ring_number", ring_num, 10);
+  info.node->get_parameter_or("ring_radius_min", ring_radius_min, 0.7);
+  info.node->get_parameter_or("ring_radius_max", ring_radius_max, 1.2);
+  info.node->get_parameter_or("ring_z_min", ring_z_min, 0.7);
+  info.node->get_parameter_or("ring_z_max", ring_z_max, 0.8);
+  info.node->get_parameter_or("ring_max_yaw", ring_max_yaw, 0.5);
+
+  const auto overrides =
+    info.node->get_node_parameters_interface()->get_parameter_overrides();
+  const auto has_override = [&overrides](const std::string& name) {
+    return overrides.find(name) != overrides.end();
+  };
+
+  if (has_override("obstacle_number"))
+  {
+    info.node->get_parameter("obstacle_number", cylinder_num);
+  }
+  if (has_override("width_min"))
+  {
+    info.node->get_parameter("width_min", radius_min);
+  }
+  if (has_override("width_max"))
+  {
+    info.node->get_parameter("width_max", radius_max);
+  }
+  if (has_override("numGates"))
+  {
+    info.node->get_parameter("numGates", ring_num);
+  }
+
+  double gate_size;
+  double max_angle_deg;
+  info.node->get_parameter_or("gateSize", gate_size, 0.0);
+  info.node->get_parameter_or("maxAngle", max_angle_deg, 0.0);
+  if (has_override("gateSize") && gate_size > 0.0)
+  {
+    ring_radius_min = 0.5 * gate_size;
+    ring_radius_max = 0.5 * gate_size;
+  }
+  constexpr double pi = 3.141592653589793;
+  if (has_override("maxAngle") && max_angle_deg > 0.0)
+  {
+    ring_max_yaw = max_angle_deg * pi / 180.0;
+  }
+
+  std::uniform_real_distribution<double> rand_x(x_l, x_h);
+  std::uniform_real_distribution<double> rand_y(y_l, y_h);
+  std::uniform_real_distribution<double> rand_radius(radius_min, radius_max);
+  std::uniform_real_distribution<double> rand_height(height_min, height_max);
+  std::uniform_real_distribution<double> rand_inflation(0.5, 1.5);
+  std::uniform_real_distribution<double> rand_ring_radius(ring_radius_min, ring_radius_max);
+  std::uniform_real_distribution<double> rand_ring_radius2(ring_radius_min, ring_radius_max);
+  std::uniform_real_distribution<double> rand_ring_z(ring_z_min, ring_z_max);
+  std::uniform_real_distribution<double> rand_ring_yaw(-ring_max_yaw, ring_max_yaw);
+
+  pcl::PointXYZ pt;
+  std::vector<Eigen::Vector2d> cylinder_centers;
+
+  int attempts = 0;
+  const int max_attempts = std::max(1000, cylinder_num * 100);
+  for (int i = 0; i < cylinder_num && attempts < max_attempts; ++i, ++attempts)
+  {
+    double x = rand_x(eng);
+    double y = rand_y(eng);
+
+    bool too_close = false;
+    for (const auto& center : cylinder_centers)
+    {
+      if ((Eigen::Vector2d(x, y) - center).norm() < min_distance)
+      {
+        too_close = true;
+        break;
+      }
+    }
+    if (too_close)
+    {
+      --i;
+      continue;
+    }
+
+    cylinder_centers.emplace_back(x, y);
+
+    x = floor(x / resolution) * resolution + resolution / 2.0;
+    y = floor(y / resolution) * resolution + resolution / 2.0;
+
+    const double radius = 0.5 * rand_radius(eng) * rand_inflation(eng);
+    const double height = rand_height(eng);
+    const int wid_num = ceil((2.0 * radius) / resolution);
+    const int hei_num = ceil(height / resolution);
+
+    for (int r = -wid_num / 2; r < wid_num / 2; ++r)
+    {
+      for (int s = -wid_num / 2; s < wid_num / 2; ++s)
+      {
+        const double temp_x = x + (r + 0.5) * resolution;
+        const double temp_y = y + (s + 0.5) * resolution;
+      if ((Eigen::Vector2d(temp_x, temp_y) - Eigen::Vector2d(x, y)).norm() > radius)
+        {
+          continue;
+        }
+
+        for (int t = 0; t < hei_num; ++t)
+        {
+          pt.x = temp_x;
+          pt.y = temp_y;
+          pt.z = (t + 0.5) * resolution;
+          info.cloud->points.push_back(pt);
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < ring_num; ++i)
+  {
+    double x = floor(rand_x(eng) / resolution) * resolution + resolution / 2.0;
+    double y = floor(rand_y(eng) / resolution) * resolution + resolution / 2.0;
+    double z = floor(rand_ring_z(eng) / resolution) * resolution + resolution / 2.0;
+
+    const double yaw = rand_ring_yaw(eng);
+    Eigen::Matrix3d rotate;
+    rotate << cos(yaw), -sin(yaw), 0.0,
+              sin(yaw),  cos(yaw), 0.0,
+              0.0,       0.0,      1.0;
+
+    const double radius1 = rand_ring_radius(eng);
+    const double radius2 = rand_ring_radius2(eng);
+
+    constexpr double two_pi = 6.283185307179586;
+    for (double angle = 0.0; angle < two_pi; angle += resolution / 2.0)
+    {
+      Eigen::Vector3d local_pt(0.0, radius1 * cos(angle), radius2 * sin(angle));
+      Eigen::Vector3d world_pt = rotate * local_pt + Eigen::Vector3d(x, y, z);
+      pt.x = world_pt(0);
+      pt.y = world_pt(1);
+      pt.z = world_pt(2);
+      info.cloud->points.push_back(pt);
+    }
+  }
+
+  info.cloud->width = info.cloud->points.size();
+  info.cloud->height = 1;
+  info.cloud->is_dense = true;
+
+  RCLCPP_INFO(info.node->get_logger(),
+              "generated random cylinder/ring map: cylinders=%d rings=%d points=%d",
+              cylinder_num,
+              ring_num,
+              info.cloud->width);
   pcl2ros();
 }
 
@@ -753,6 +935,9 @@ Maps::generate(int type)
     case 4: // generating 3d maze
       std::srand(info.seed);
       Maze3DGen();
+      break;
+    case 5:
+      randomCylinderRingMapGenerate();
       break;
   }
 }
